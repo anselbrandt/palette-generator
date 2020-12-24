@@ -254,10 +254,23 @@ export const getPalette = (hex: string, arg?: string) => {
   const name = namer(hex).pantone[0].name.toLowerCase().replace(/\s/g, "-");
   const color: Color = {
     [name]: {
-      500: `#${hex}`,
+      500: `#${hex.replace(/#/g, "")}`,
     },
   };
   const intensityMap: {
+    [key: number]: number;
+  } = {
+    50: 0.95,
+    100: 0.9,
+    200: 0.75,
+    300: 0.6,
+    400: 0.3,
+    600: 0.9,
+    700: 0.75,
+    800: 0.6,
+    900: 0.49,
+  };
+  const hsMap: {
     [key: number]: number;
   } = {
     50: 0.95,
@@ -274,12 +287,12 @@ export const getPalette = (hex: string, arg?: string) => {
   switch (arg) {
     case "l":
       [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
-        color[name][level] = changeLightness(hex, intensityMap[level]);
+        color[name][level] = changeLightness(hex, hsMap[level]);
       });
       break;
     case "v":
       [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
-        color[name][level] = changeValue(hex, intensityMap[level]);
+        color[name][level] = changeValue(hex, hsMap[level]);
       });
       break;
     default:

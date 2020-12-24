@@ -28,6 +28,6 @@ const jpalette = {
 
 // console.log(newColor);
 
-const palette = getPalette(jpalette.jupiter[500]);
+const palette = getPalette("3ab2bd");
 
 console.log(palette);
