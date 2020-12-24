@@ -350,46 +350,29 @@ export const getCustomPalette = (hex: string, options?: Options) => {
     800: 0.6,
     900: 0.49,
   };
-  const lMap: {
-    [key: number]: number;
-  } = {
-    50: 2.02,
-    100: 1.98,
-    200: 1.81,
-    300: 1.65,
-    400: 1.33,
-    600: 0.9,
-    700: 0.75,
-    800: 0.6,
-    900: 0.49,
-  };
-  const vMap: {
-    [key: number]: number;
-  } = {
-    50: 1.35,
-    100: 1.31,
-    200: 1.27,
-    300: 1.22,
-    400: 1.11,
-    600: 0.9,
-    700: 0.75,
-    800: 0.6,
-    900: 0.49,
-  };
+
+  if (options?.intensityMap && options.intensityMap.length === 9) {
+    const mapKeys = [50, 100, 200, 300, 400, 600, 700, 800, 900];
+    const values = options.intensityMap;
+    const entries = mapKeys.map((key, index) => [key, values[index]]);
+    const customMap = Object.fromEntries(entries);
+    intensityMap = customMap;
+  } else {
+    intensityMap = defaultMap;
+  }
 
   switch (options?.colorSpace) {
-    case "l":
+    case "hsl":
       [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
-        color[name][level] = changeLightness(hex, lMap[level]);
+        color[name][level] = changeLightness(hex, intensityMap[level]);
       });
       break;
-    case "v":
+    case "hsv":
       [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
-        color[name][level] = changeValue(hex, vMap[level]);
+        color[name][level] = changeValue(hex, intensityMap[level]);
       });
       break;
     default:
-      intensityMap = defaultMap;
       [50, 100, 200, 300, 400].forEach((level) => {
         color[name][level] = lighten(hex, intensityMap[level]);
       });

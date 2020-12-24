@@ -1,4 +1,4 @@
-import { getPalette } from "./utils";
+import { getCustomPalette } from "./utils";
 
 const jpalette = {
   jupiter: {
@@ -28,6 +28,8 @@ const jpalette = {
 
 // console.log(newColor);
 
-const palette = getPalette("#ff6347", "l");
+const palette = getCustomPalette("#ff6347", {
+  intensityMap: [0.95, 0.9, 0.75, 0.6, 0.3, 0.9, 0.75, 0.6, 0.49],
+});
 
 console.log(palette);
