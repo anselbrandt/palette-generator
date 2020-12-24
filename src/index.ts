@@ -1,4 +1,4 @@
-import { getPalette, hexToRgb, rgbToHsl } from "./utils";
+import { getPalette, hexToRgb, rgbToHsl, hsvToHex } from "./utils";
 
 const jpalette = {
   jupiter: {
@@ -15,16 +15,19 @@ const jpalette = {
   },
 };
 
-const jcolor = "#3ab2bd";
+// const hexToNew = (hex: string) => {
+//   const rgb = hexToRgb(hex);
+//   const hsl = rgbToHsl(rgb);
+//   const newHex = hsvToHex(hsl);
+//   return newHex;
+// };
 
-const hexToNew = (hex: string) => {
-  const rgb = hexToRgb(hex);
-  const hsv = rgbToHsl(rgb);
-  return hsv;
-};
+// const entries = Object.entries(jpalette.jupiter);
+// const newEntries = entries.map((entry) => [entry[0], hexToNew(entry[1])]);
+// const newColor = Object.fromEntries(newEntries);
 
-const entries = Object.entries(jpalette.jupiter);
-const newEntries = entries.map((entry) => [entry[0], hexToNew(entry[1])]);
-const newColor = Object.fromEntries(newEntries);
+// console.log(newColor);
 
-console.log(newColor);
+const palette = getPalette(jpalette.jupiter[500]);
+
+console.log(palette);

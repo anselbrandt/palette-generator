@@ -1,8 +1,8 @@
 import namer from "color-namer";
 
 const RGB_MAX: any = 255;
-const HUE_MAX = 360;
-const SV_MAX = 100;
+const HUE_MAX: any = 360;
+const SV_MAX: any = 100;
 
 export const hexToRgb = (hex: any) => {
   const match = hex.toString(16).match(/[a-f0-9]{6}|[a-f0-9]{3}/i);
@@ -109,17 +109,97 @@ export const rgbToHsv = (rgb: number[]) => {
     h /= 6;
   }
 
-  return {
-    h: Math.round(h * HUE_MAX),
-    s: Math.round(s * SV_MAX),
-    v: Math.round(v * SV_MAX),
-  };
+  return [
+    Math.round(h * HUE_MAX),
+    Math.round(s * SV_MAX),
+    Math.round(v * SV_MAX),
+  ];
+};
+
+const normalizeAngle = (degrees: number) => ((degrees % 360) + 360) % 360;
+const hue2Rgb = (p: number, q: number, t: number) => {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1 / 6) return p + (q - p) * 6 * t;
+  if (t < 1 / 2) return q;
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
+};
+
+const hslToRgb = (hsl: number[]) => {
+  let [h, s, l] = hsl;
+
+  var r, g, b;
+
+  h = normalizeAngle(h);
+  h = h === HUE_MAX ? 1 : (h % HUE_MAX) / parseFloat(HUE_MAX);
+  s = s === SV_MAX ? 1 : (s % SV_MAX) / parseFloat(SV_MAX);
+  l = l === SV_MAX ? 1 : (l % SV_MAX) / parseFloat(SV_MAX);
+
+  if (s === 0) {
+    r = g = b = l; // achromatic
+  } else {
+    var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    var p = 2 * l - q;
+    r = hue2Rgb(p, q, h + 1 / 3);
+    g = hue2Rgb(p, q, h);
+    b = hue2Rgb(p, q, h - 1 / 3);
+  }
+
+  return [
+    Math.round(r * RGB_MAX),
+    Math.round(g * RGB_MAX),
+    Math.round(b * RGB_MAX),
+  ];
+};
+
+const hsvToRgb = (hsv: number[]) => {
+  let [h, s, v] = hsv;
+
+  h = normalizeAngle(h);
+  h = h === HUE_MAX ? 1 : ((h % HUE_MAX) / parseFloat(HUE_MAX)) * 6;
+  s = s === SV_MAX ? 1 : (s % SV_MAX) / parseFloat(SV_MAX);
+  v = v === SV_MAX ? 1 : (v % SV_MAX) / parseFloat(SV_MAX);
+
+  var i = Math.floor(h);
+  var f = h - i;
+  var p = v * (1 - s);
+  var q = v * (1 - f * s);
+  var t = v * (1 - (1 - f) * s);
+  var mod = i % 6;
+  var r = [v, q, p, p, t, v][mod];
+  var g = [t, v, v, q, p, p][mod];
+  var b = [p, p, t, v, v, q][mod];
+
+  return [
+    Math.floor(r * RGB_MAX),
+    Math.floor(g * RGB_MAX),
+    Math.floor(b * RGB_MAX),
+  ];
+};
+
+export const hslToHex = (hsl: number[]) => {
+  const rgb = hslToRgb(hsl);
+  const hex = rgbToHex(rgb);
+  return hex;
+};
+
+export const hsvToHex = (hsv: number[]) => {
+  const rgb = hsvToRgb(hsv);
+  const hex = rgbToHex(rgb);
+  return hex;
 };
 
 export const hexToHsl = (hex: any) => {
   const rgb = hexToRgb(hex);
   const hsl = rgbToHsl(rgb);
   return hsl;
+};
+
+export const hexToHsv = (hex: any) => {
+  const rgb = hexToRgb(hex);
+  const hsv = rgbToHsv(rgb);
+  return hsv;
 };
 
 export const hexToLightness = (hex: any) => {
@@ -131,6 +211,18 @@ export const hexToLightness = (hex: any) => {
   const max = Math.max(r, g, b);
   const lightness = ((min + max) / 2) * 100;
   return lightness;
+};
+
+const changeLightness = (hex: string, intensity: number) => {
+  let [h, s, l] = hexToHsl(hex);
+  l = l * intensity;
+  return hslToHex([h, s, l]);
+};
+
+const changeValue = (hex: string, intensity: number) => {
+  let [h, s, v] = hexToHsv(hex);
+  v = v * intensity;
+  return hsvToHex([h, s, v]);
 };
 
 const lighten = (hex: string, intensity: number) => {
@@ -158,7 +250,7 @@ interface Color {
   [color: string]: Palette;
 }
 
-export const getPalette = (hex: string) => {
+export const getPalette = (hex: string, arg?: string) => {
   const name = namer(hex).pantone[0].name.toLowerCase().replace(/\s/g, "-");
   const color: Color = {
     [name]: {
@@ -179,13 +271,25 @@ export const getPalette = (hex: string) => {
     900: 0.49,
   };
 
-  [50, 100, 200, 300, 400].forEach((level) => {
-    color[name][level] = lighten(hex, intensityMap[level]);
-  });
-
-  [600, 700, 800, 900].forEach((level) => {
-    color[name][level] = darken(hex, intensityMap[level]);
-  });
+  switch (arg) {
+    case "l":
+      [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
+        color[name][level] = changeLightness(hex, intensityMap[level]);
+      });
+      break;
+    case "v":
+      [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
+        color[name][level] = changeValue(hex, intensityMap[level]);
+      });
+      break;
+    default:
+      [50, 100, 200, 300, 400].forEach((level) => {
+        color[name][level] = lighten(hex, intensityMap[level]);
+      });
+      [600, 700, 800, 900].forEach((level) => {
+        color[name][level] = darken(hex, intensityMap[level]);
+      });
+  }
 
   return color;
 };
