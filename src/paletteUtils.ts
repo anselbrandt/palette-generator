@@ -46,7 +46,7 @@ interface Color {
   [color: string]: Palette;
 }
 
-export const getPalette = (hex: string, arg?: string) => {
+export const getPalette = (hex: string) => {
   const name = namer(hex).pantone[0].name.toLowerCase().replace(/\s/g, "-");
   const color: Color = {
     [name]: {
@@ -66,52 +66,13 @@ export const getPalette = (hex: string, arg?: string) => {
     800: 0.6,
     900: 0.49,
   };
-  const lMap: {
-    [key: number]: number;
-  } = {
-    50: 2.02,
-    100: 1.98,
-    200: 1.81,
-    300: 1.65,
-    400: 1.33,
-    600: 0.9,
-    700: 0.75,
-    800: 0.6,
-    900: 0.49,
-  };
-  const vMap: {
-    [key: number]: number;
-  } = {
-    50: 1.35,
-    100: 1.31,
-    200: 1.27,
-    300: 1.22,
-    400: 1.11,
-    600: 0.9,
-    700: 0.75,
-    800: 0.6,
-    900: 0.49,
-  };
 
-  switch (arg) {
-    case "l":
-      [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
-        color[name][level] = changeLightness(hex, lMap[level]);
-      });
-      break;
-    case "v":
-      [50, 100, 200, 300, 400, 600, 700, 800, 900].forEach((level) => {
-        color[name][level] = changeValue(hex, vMap[level]);
-      });
-      break;
-    default:
-      [50, 100, 200, 300, 400].forEach((level) => {
-        color[name][level] = lighten(hex, intensityMap[level]);
-      });
-      [600, 700, 800, 900].forEach((level) => {
-        color[name][level] = darken(hex, intensityMap[level]);
-      });
-  }
+  [50, 100, 200, 300, 400].forEach((level) => {
+    color[name][level] = lighten(hex, intensityMap[level]);
+  });
+  [600, 700, 800, 900].forEach((level) => {
+    color[name][level] = darken(hex, intensityMap[level]);
+  });
 
   return color;
 };
